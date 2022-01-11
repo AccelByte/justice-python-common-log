@@ -64,8 +64,8 @@ class Log:
 
             data["user_agent"] = request.headers.get("User-Agent", "")
             data["referer"] = request.headers.get("Referer", "")
-            data["user_ip"] = request.headers.get("X-Forwarded-For") if request.headers.get("X-Forwarded-For") else request.remote_addr
-            data["trace_id"] = request.headers.get("X-Ab-TraceID") if request.headers.get("X-Ab-TraceID") else uuid.uuid4().hex
+            data["user_ip"] = request.headers.get("X-Forwarded-For", request.remote_addr)
+            data["trace_id"] = request.headers.get("X-Ab-TraceID", uuid.uuid4().hex)
 
             if request.headers.get("Authorization"):
                 data_token = decodeToken(request.headers.get("Authorization"))
