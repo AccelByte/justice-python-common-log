@@ -59,7 +59,6 @@ class Log:
             "duration" : int((datetime.now() - g.start).total_seconds())
         }
 
-
         if bool(strtobool(os.getenv("FULL_ACCESS_LOG_ENABLED", FULL_ACCESS_LOG_ENABLED))):
 
             data["user_agent"] = request.headers.get("User-Agent", "")
@@ -112,6 +111,5 @@ class Log:
                 data.get("status"), 
                 data.get("duration")
             ))
-
 
         return response
