@@ -114,5 +114,4 @@ class Log:
             ))
 
 
-
         return response

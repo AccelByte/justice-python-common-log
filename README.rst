@@ -7,7 +7,7 @@ justice-python-common-log
         :alt: Python Version
 
 .. image:: https://img.shields.io/pypi/l/justice_python_common_log
-        :target: https://github.com/AccelByte/justice_python_common_log/blob/main/LICENSE
+        :target: https://github.com/AccelByte/justice-python-common-log/blob/main/LICENSE
         :alt: License
 
 
