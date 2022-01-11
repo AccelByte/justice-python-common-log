@@ -1,3 +1,17 @@
+# Copyright 2022 AccelByte Inc
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 TEST_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJiYW5zIjpbXSwiY2xpZW50X2lkIjoiMDAwMDAwMDAwMDAwMCIsImNvdW50cnkiOiJJRCIsImRpc3BsYXlfbmFtZSI6InRlc3QiLCJleHAiOjE2MjM5OTU0NzgsImlhdCI6MTYyMjY3NTQwNiwiamZsZ3MiOjEsIm5hbWVzcGFjZSI6InRlc3QiLCJuYW1lc3BhY2Vfcm9sZXMiOlt7Im5hbWVzcGFjZSI6InRlc3QiLCJyb2xlSWQiOiIwMDAwMDAwMDAwMDAwMDAwMDAifSx7Im5hbWVzcGFjZSI6InRlc3QiLCJyb2xlSWQiOiIxMTExMTExMTExMTExMTExMTEifSx7Im5hbWVzcGFjZSI6ImFjY2VsYnl0ZSIsInJvbGVJZCI6IjIyMjIyMjIyMjIyMjIyMjIyMjIifSx7Im5hbWVzcGFjZSI6IioiLCJyb2xlSWQiOiIzMzMzMzMzMzMzMzMzMzMzMzMzIn1dLCJwZXJtaXNzaW9ucyI6W10sInJvbGVzIjpbIjAwMDAwMDAwMDAwMDAwMDAwMCIsIjExMTExMTExMTExMTExMTExMSIsIjIyMjIyMjIyMjIyMjIyMjIyMjIiLCIzMzMzMzMzMzMzMzMzMzMzMzMzIl0sInNjb3BlIjoiYWNjb3VudCB0ZXN0Iiwic3ViIjoiMTIzNDU2Nzg5MTAiLCJqdGkiOiIwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCJ9.IAdBig0pdLbUBlBDBeYQzoORzREpW5XcwM1TkUR0J7Q"
 
 TEST_CONTENT_TYPE = 'application/json'
