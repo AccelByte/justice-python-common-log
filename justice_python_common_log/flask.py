@@ -19,7 +19,7 @@ import uuid
 import logging
 from distutils.util import strtobool
 from datetime import datetime, timezone
-from flask import g, Flask, request, current_app
+from flask import g, Flask, request
 from flask.wrappers import Response
 from .constant import DEFAULT_LOG_FORMAT, FULL_LOG_FORMAT, FULL_ACCESS_LOG_ENABLED
 from .utils import getRequestBody, getResponseBody, decodeToken
@@ -30,11 +30,11 @@ class Log:
     """
     def __init__(self, app: Flask = None) -> None:
             self.app = app
+            self.logger = logging.getLogger('werkzeug')
+            self.logger.setLevel(logging.ERROR)
 
             # configure root logger
             logging.basicConfig(level=logging.INFO, format='%(message)s')
-            log = logging.getLogger('werkzeug')
-            log.setLevel(logging.ERROR)
 
             if app is not None:
                 self.init_app(app)

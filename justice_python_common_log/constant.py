@@ -15,6 +15,6 @@
 DEFAULT_LOG_FORMAT = 'time={:s} realm={:s} method={:s} path={:s} status={:d} duration={:d}'
 FULL_LOG_FORMAT = 'time={:s} log_type=access method={:s} path="{:s}" status={:d} duration={:d} length={:d} source_ip={:s} user_agent="{:s}" referer="{:s}" trace_id={:s} namespace={:s} user_id={:s} client_id={:s} request_content_type="{:s}" request_body=AB[{:s}]AB response_content_type="{:s}" response_body=AB[{:s}]AB'
 
-FULL_ACCESS_LOG_ENABLED= 'False'
+FULL_ACCESS_LOG_ENABLED= "False"
 FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES= "application/json,application/xml,application/x-www-form-urlencoded,text/plain,text/html"
 FULL_ACCESS_LOG_MAX_BODY_SIZE= 10240
