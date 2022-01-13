@@ -83,7 +83,7 @@ class Log:
                 data["response_content_type"] = response.content_type
                 data["response_body"] = getResponseBody(response.data, response.content_type)
 
-            logging.info(FULL_LOG_FORMAT.format(
+            logger.info(FULL_LOG_FORMAT.format(
                 data.get("time"), 
                 data.get("method"), 
                 data.get("path"), 
@@ -105,7 +105,7 @@ class Log:
             
         else:
 
-            logging.info(DEFAULT_LOG_FORMAT.format(
+            logger.info(DEFAULT_LOG_FORMAT.format(
                 data.get("time"), 
                 data.get("realm"), 
                 data.get("method"), 
