@@ -24,8 +24,8 @@ Usage in flask
 
 .. code:: python
 
-   from justice_python_common_log.flask import Log
    import flask
+   from justice_python_common_log.flask import Log
 
    app = flask.Flask(__name__)
    log = Log(app)
