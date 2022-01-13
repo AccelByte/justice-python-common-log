@@ -25,16 +25,18 @@ from .constant import DEFAULT_LOG_FORMAT, FULL_LOG_FORMAT, FULL_ACCESS_LOG_ENABL
 from .utils import getRequestBody, getResponseBody, decodeToken
 
 
+# configure logger format
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger('justice-common-log')
+
+
 class Log:
     """Log Flask extensions class.
     """
     def __init__(self, app: Flask = None) -> None:
             self.app = app
-            self.logger = logging.getLogger('werkzeug')
-            self.logger.setLevel(logging.ERROR)
-
-            # configure root logger
-            logging.basicConfig(level=logging.INFO, format='%(message)s')
+            werkzeug_logger = logging.getLogger('werkzeug')
+            werkzeug_logger.disabled = True
 
             if app is not None:
                 self.init_app(app)
