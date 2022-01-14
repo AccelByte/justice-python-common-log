@@ -12,9 +12,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = ['pyjwt[crypto]==2.2.0']
 
-optional_requirements = {
-    "flask": ["Flask>=1.0"]
-}
+test_requirements = ['pyjwt[crypto]==2.2.0']
 
 setup(
     author="Accelbyte Analytics",
