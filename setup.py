@@ -14,6 +14,10 @@ requirements = ['pyjwt[crypto]==2.2.0']
 
 test_requirements = ['pyjwt[crypto]==2.2.0']
 
+optional_requirements = {
+    "flask": ["Flask>=1.0"]
+}
+
 setup(
     author="Accelbyte Analytics",
     author_email='justice-analytics-team@accelbyte.net',
@@ -30,6 +34,7 @@ setup(
     ],
     description="Justice common log format for python",
     install_requires=requirements,
+    extras_require=optional_requirements,
     license="Apache Software License 2.0",
     long_description=readme + '\n\n' + history,
     include_package_data=True,
