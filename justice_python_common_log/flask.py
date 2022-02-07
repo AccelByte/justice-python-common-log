@@ -33,8 +33,9 @@ logger = logging.getLogger('justice-common-log')
 class Log:
     """Log Flask extensions class.
     """
-    def __init__(self, app: Flask = None) -> None:
+    def __init__(self, app: Flask = None, excluded_paths=None) -> None:
             self.app = app
+            self.excluded_paths = excluded_paths
             werkzeug_logger = logging.getLogger('werkzeug')
             werkzeug_logger.disabled = True
 
@@ -51,6 +52,10 @@ class Log:
 
 
     def filter(self, response: Response) -> Response:
+
+        if self.excluded_paths is not None:
+            if request.path in self.excluded_paths:
+                return response
 
         data = {
             "time" : datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),

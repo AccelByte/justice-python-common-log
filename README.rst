@@ -22,27 +22,34 @@ Justice common log format for python
 Usage in flask
 ~~~~~~~~~~~~~~
 
+**Basic** 
+
 .. code:: python
 
    import flask
    from justice_python_common_log.flask import Log
 
    app = flask.Flask(__name__)
-   log = Log(app)
+   Log(app)
 
 
+**Exclude specific endpoint** 
+
+.. code:: python
+
+   Log(app, excluded_paths=['/swaggerui', '/analytics/apidocs'])
 
 Environment variables
 ~~~~~~~~~~~~~~~~~~~~~
 
 **FULL_ACCESS_LOG_ENABLED** 
-=> Enable full access log mode. Default: *false*.
+: Enable full access log mode. Default: *false*.
 
 **FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES**
-=> Supported content types to shown in request_body and response_body log.
+: Supported content types to shown in request_body and response_body log.
 Default:
 *application/json,application/xml,application/x-www-form-urlencoded,text/plain,text/html*.
 
 **FULL_ACCESS_LOG_MAX_BODY_SIZE**
-=> Maximum size of request body or response body that will be processed,
+: Maximum size of request body or response body that will be processed,
 will be ignored if exceed more than it. Default: *10240 bytes*
