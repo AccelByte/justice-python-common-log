@@ -15,6 +15,7 @@
 """Flask module."""
 
 import os
+import re
 import uuid
 import logging
 from distutils.util import strtobool
@@ -35,9 +36,13 @@ class Log:
     """
     def __init__(self, app: Flask = None, excluded_paths=None) -> None:
             self.app = app
-            self.excluded_paths = excluded_paths
             werkzeug_logger = logging.getLogger('werkzeug')
             werkzeug_logger.disabled = True
+
+            if excluded_paths:
+                self.excluded_paths = [re.compile(pattern) for pattern in excluded_paths]
+            else:
+                self.excluded_paths = excluded_paths
 
             if app is not None:
                 self.init_app(app)
@@ -54,7 +59,7 @@ class Log:
     def filter(self, response: Response) -> Response:
 
         if self.excluded_paths is not None:
-            if request.path in self.excluded_paths:
+            if any(pattern.match(request.path) for pattern in self.excluded_paths):
                 return response
 
         data = {
