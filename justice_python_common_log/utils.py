@@ -55,10 +55,9 @@ def getResponseBody(responseContext, contentType):
 
 def minifyJsonString(stringContext):
 
-    stringContext = orjson.loads(stringContext)
-    stringContext= orjson.dumps(stringContext)
+    stringContextCompress = orjson.dumps(orjson.loads(stringContext)).decode("utf-8")
 
-    return stringContext.decode("utf-8")
+    return stringContextCompress
 
 
 def isSupportedContentType(contentType):
