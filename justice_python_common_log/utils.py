@@ -57,7 +57,7 @@ def getResponseBody(responseContext, contentType):
 def minifyJsonString(stringContext):
 
     stringContext = stringContext.decode("utf-8")
-    stringContext = stringContext.replace("\n", "").replace("\t", "").replace(" ", "")
+    stringContext = stringContext.replace("\n", "").replace("\t", "").replace("  ", "")
 
     return stringContext
 
