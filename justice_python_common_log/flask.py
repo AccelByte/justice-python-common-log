@@ -15,6 +15,7 @@
 """Flask module."""
 
 import os
+import re
 import uuid
 import logging
 from distutils.util import strtobool
@@ -33,10 +34,15 @@ logger = logging.getLogger('justice-common-log')
 class Log:
     """Log Flask extensions class.
     """
-    def __init__(self, app: Flask = None) -> None:
+    def __init__(self, app: Flask = None, excluded_paths=None) -> None:
             self.app = app
             werkzeug_logger = logging.getLogger('werkzeug')
             werkzeug_logger.disabled = True
+
+            if excluded_paths:
+                self.excluded_paths = [re.compile(pattern) for pattern in excluded_paths]
+            else:
+                self.excluded_paths = excluded_paths
 
             if app is not None:
                 self.init_app(app)
@@ -51,6 +57,10 @@ class Log:
 
 
     def filter(self, response: Response) -> Response:
+
+        if self.excluded_paths is not None:
+            if any(pattern.match(request.path) for pattern in self.excluded_paths):
+                return response
 
         data = {
             "time" : datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),

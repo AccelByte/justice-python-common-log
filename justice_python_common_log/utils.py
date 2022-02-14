@@ -16,6 +16,7 @@
 
 import os
 import jwt
+import orjson
 from .constant import FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES, FULL_ACCESS_LOG_MAX_BODY_SIZE
 
 
@@ -27,15 +28,14 @@ def getRequestBody(requestContext, contentType):
     if not contentType or not isSupportedContentType(contentType):
         return ""
 
-    result = ""
     if len(requestContext) != 0:
         if len(requestContext) > fullAccessLogMaxBodySize:
             return "data too large"
 
-        if contentType in supportedContentTypeList:
-            result = minifyJsonString(requestContext)
+        if contentType == 'application/json':
+            return minifyJsonString(requestContext)
 
-    return result
+    return str(requestContext)
     
 
 def getResponseBody(responseContext, contentType):
@@ -43,23 +43,21 @@ def getResponseBody(responseContext, contentType):
     if not contentType or not isSupportedContentType(contentType):
         return ""
 
-    result = ""
     if len(responseContext) != 0:
         if len(responseContext) > fullAccessLogMaxBodySize:
             return "data too large"
 
-        if contentType in supportedContentTypeList:
-            result = minifyJsonString(responseContext)
+        if contentType == 'application/json':
+            return minifyJsonString(responseContext)
 
-    return result
+    return str(responseContext)
 
 
 def minifyJsonString(stringContext):
 
-    stringContext = stringContext.decode("utf-8")
-    stringContext = stringContext.replace("\n", "").replace("\t", "").replace(" ", "")
+    stringContextCompress = orjson.dumps(orjson.loads(stringContext)).decode("utf-8")
 
-    return stringContext
+    return stringContextCompress
 
 
 def isSupportedContentType(contentType):

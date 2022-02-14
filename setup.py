@@ -10,9 +10,9 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['pyjwt[crypto]==2.2.0']
+requirements = ['pyjwt[crypto]==2.2.0','orjson==3.6.4']
 
-test_requirements = ['pyjwt[crypto]==2.2.0']
+test_requirements = ['pyjwt[crypto]==2.2.0','orjson==3.6.4']
 
 optional_requirements = {
     "flask": ["Flask>=1.0"]
