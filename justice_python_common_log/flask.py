@@ -65,6 +65,10 @@ class Log:
 
         response.direct_passthrough = False
 
+        if self.excluded_agents is not None:
+            if any(pattern.match(request.headers.get("User-Agent", "")) for pattern in self.excluded_agents):
+                return response
+
         if self.excluded_paths is not None:
             if any(pattern.match(request.path) for pattern in self.excluded_paths):
                 return response
