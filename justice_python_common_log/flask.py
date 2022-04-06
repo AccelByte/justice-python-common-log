@@ -36,18 +36,25 @@ class Log:
     """
     def __init__(self, app: Flask = None, excluded_paths=None, excluded_agents=None) -> None:
             self.app = app
+            self.exclude_path_patterns = []
+            self.exclude_paths = []
+            self.excluded_agent_patterns = []
             werkzeug_logger = logging.getLogger('werkzeug')
             werkzeug_logger.disabled = True
 
-            if excluded_paths:
-                self.excluded_paths = [re.compile(pattern) for pattern in excluded_paths]
-            else:
-                self.excluded_paths = excluded_paths
+            if excluded_paths is not None:
 
-            if excluded_agents:
-                self.excluded_agents = [re.compile(pattern) for pattern in excluded_agents]
-            else:
-                self.excluded_agents = excluded_agents
+                for exclude_path in excluded_paths:
+                    if '*' in exclude_path:
+                        self.exclude_path_patterns.append(exclude_path.replace('*', ""))
+                    else:
+                        self.exclude_paths.append(exclude_path)
+
+            if self.exclude_path_patterns:
+                self.exclude_path_patterns = [re.compile(pattern) for pattern in self.exclude_path_patterns]
+
+            if excluded_agents is not None:
+                self.excluded_agent_patterns = [re.compile(pattern) for pattern in excluded_agents]
 
             if app is not None:
                 self.init_app(app)
@@ -65,12 +72,16 @@ class Log:
 
         response.direct_passthrough = False
 
-        if self.excluded_agents is not None:
-            if any(pattern.match(request.headers.get("User-Agent")) for pattern in self.excluded_agents):
+        if self.exclude_paths:
+            if (request.path in self.exclude_paths):
                 return response
 
-        if self.excluded_paths is not None:
-            if any(pattern.match(request.path) for pattern in self.excluded_paths):
+        if self.exclude_path_patterns:
+            if any(pattern.match(request.path) for pattern in self.exclude_path_patterns):
+                return response
+
+        if self.excluded_agent_patterns:
+            if any(pattern.match(request.headers.get("User-Agent", "")) for pattern in self.excluded_agent_patterns):
                 return response
 
         data = {
