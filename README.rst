@@ -37,7 +37,7 @@ Usage in flask
 
 .. code:: python
 
-   Log(app, excluded_paths=['/swaggerui', '/analytics/apidocs'])
+   Log(app, excluded_paths=['/swaggerui.*', '/analytics/apidocs'])
 
 
 **Exclude specific agent** 
