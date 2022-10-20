@@ -19,10 +19,10 @@ Justice common log format for python
 * Free software: Apache Software License 2.0
 
 
-Usage in flask
+Usage
 ~~~~~~~~~~~~~~
 
-**Basic** 
+**Flask** 
 
 .. code:: python
 
@@ -32,6 +32,15 @@ Usage in flask
    app = flask.Flask(__name__)
    Log(app)
 
+**FastApi** 
+
+.. code:: python
+
+   from fastapi import FastAPI
+   from justice_python_common_log.fastapi import Log
+
+   app = FastAPI()
+   Log(app)
 
 **Exclude specific endpoint** 
 
@@ -45,6 +54,7 @@ Usage in flask
 .. code:: python
 
    Log(app, excluded_agents=['ELB'])
+
 
 
 Environment variables
