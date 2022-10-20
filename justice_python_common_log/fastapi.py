@@ -64,7 +64,7 @@ class Log:
                     return response
 
             if self.excluded_paths:
-                if any(pattern.fullmatch(request.path) for pattern in self.excluded_paths):
+                if any(pattern.fullmatch(request.url.path) for pattern in self.excluded_paths):
                     return response
 
             data = {
