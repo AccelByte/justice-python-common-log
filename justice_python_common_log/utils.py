@@ -69,7 +69,10 @@ def isSupportedContentType(contentType):
 
 
 def decodeToken(token):
-    data_token = jwt.decode(token.replace("Bearer ", ""), options={"verify_signature": False})
+
+    try:
+        data_token = jwt.decode(token.replace("Bearer ", ""), options={"verify_signature": False})
+    except:
+        data_token = dict()
 
     return data_token
-
