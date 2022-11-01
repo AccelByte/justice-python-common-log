@@ -35,21 +35,20 @@ class Log:
     """Log Flask extensions class.
     """
     def __init__(self, app: Flask = None, excluded_paths=None, excluded_agents=None) -> None:
-            self.app = app
-            self.app = app
-            self.excluded_paths = excluded_paths
-            self.excluded_agents = excluded_agents
-            werkzeug_logger = logging.getLogger('werkzeug')
-            werkzeug_logger.disabled = True
+        self.app = app
+        self.excluded_paths = excluded_paths
+        self.excluded_agents = excluded_agents
+        werkzeug_logger = logging.getLogger('werkzeug')
+        werkzeug_logger.disabled = True
 
-            if self.excluded_paths is not None:
-                self.excluded_paths = [re.compile(pattern) for pattern in self.excluded_paths]
+        if self.excluded_paths is not None:
+            self.excluded_paths = [re.compile(pattern) for pattern in self.excluded_paths]
 
-            if self.excluded_agents is not None:
-                self.excluded_agents= [re.compile(pattern) for pattern in excluded_agents]
+        if self.excluded_agents is not None:
+            self.excluded_agents= [re.compile(pattern) for pattern in excluded_agents]
 
-            if app is not None:
-                self.init_app(app)
+        if app is not None:
+            self.init_app(app)
 
     def init_app(self, app: Flask):
         app.before_request(self.start_request_time)
