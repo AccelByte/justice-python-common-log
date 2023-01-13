@@ -19,12 +19,11 @@ import jwt
 import orjson
 from .constant import FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES, FULL_ACCESS_LOG_MAX_BODY_SIZE
 
-
 fullAccessLogMaxBodySize = int(os.getenv("FULL_ACCESS_LOG_MAX_BODY_SIZE", FULL_ACCESS_LOG_MAX_BODY_SIZE))
 supportedContentTypeList = str(os.getenv("FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES", FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES)).split(",")
 
-def getRequestBody(requestContext, contentType):
 
+def getRequestBody(requestContext, contentType):
     if not contentType or not isSupportedContentType(contentType):
         return ""
 
@@ -36,10 +35,9 @@ def getRequestBody(requestContext, contentType):
             return minifyJsonString(requestContext)
 
     return str(requestContext)
-    
+
 
 def getResponseBody(responseContext, contentType):
-
     if not contentType or not isSupportedContentType(contentType):
         return ""
 
@@ -54,17 +52,15 @@ def getResponseBody(responseContext, contentType):
 
 
 def minifyJsonString(stringContext):
-
     stringContextCompress = orjson.dumps(orjson.loads(stringContext)).decode("utf-8")
 
     return stringContextCompress
 
 
 def isSupportedContentType(contentType):
-
     if contentType in supportedContentTypeList:
         return True
-    
+
     return False
 
 
@@ -72,4 +68,3 @@ def decodeToken(token):
     data_token = jwt.decode(token.replace("Bearer ", ""), options={"verify_signature": False})
 
     return data_token
-

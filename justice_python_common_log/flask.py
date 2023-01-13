@@ -25,7 +25,6 @@ from flask.wrappers import Response
 from .constant import DEFAULT_LOG_FORMAT, FULL_LOG_FORMAT, FULL_ACCESS_LOG_ENABLED
 from .utils import getRequestBody, getResponseBody, decodeToken
 
-
 # configure logger format
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger('justice-common-log')
@@ -34,51 +33,51 @@ logger = logging.getLogger('justice-common-log')
 class Log:
     """Log Flask extensions class.
     """
+
     def __init__(self, app: Flask = None, excluded_paths=None, excluded_agents=None) -> None:
-            self.app = app
-            self.app = app
-            self.excluded_paths = excluded_paths
-            self.excluded_agents = excluded_agents
-            werkzeug_logger = logging.getLogger('werkzeug')
-            werkzeug_logger.disabled = True
+        self.app = app
+        self.app = app
+        self.excluded_paths = excluded_paths
+        self.excluded_agents = excluded_agents
+        werkzeug_logger = logging.getLogger('werkzeug')
+        werkzeug_logger.disabled = True
 
-            if self.excluded_paths is not None:
-                self.excluded_paths = [re.compile(pattern) for pattern in self.excluded_paths]
+        if self.excluded_paths is not None:
+            self.excluded_paths = [re.compile(pattern) for pattern in self.excluded_paths]
 
-            if self.excluded_agents is not None:
-                self.excluded_agents= [re.compile(pattern) for pattern in excluded_agents]
+        if self.excluded_agents is not None:
+            self.excluded_agents = [re.compile(pattern) for pattern in excluded_agents]
 
-            if app is not None:
-                self.init_app(app)
+        if app is not None:
+            self.init_app(app)
 
     def init_app(self, app: Flask):
         app.before_request(self.start_request_time)
         app.after_request(self.filter)
 
-
     def start_request_time(self):
         g.start = datetime.now()
-
 
     def filter(self, response: Response) -> Response:
 
         response.direct_passthrough = False
 
         if self.excluded_agents:
-            if any(pattern.match(request.headers.get("User-Agent")) for pattern in self.excluded_agents):
-                return response
+            if request.headers.get("User-Agent") is not None:
+                if any(pattern.match(request.headers.get("User-Agent")) for pattern in self.excluded_agents):
+                    return response
 
         if self.excluded_paths:
             if any(pattern.fullmatch(request.path) for pattern in self.excluded_paths):
                 return response
 
         data = {
-            "time" : datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-            "realm" : os.getenv("REALM", "dev"),
-            "method" : request.method,
-            "path" : request.path,
-            "status" : response.status_code,
-            "duration" : int((datetime.now() - g.start).total_seconds() * 1000)
+            "time": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            "realm": os.getenv("REALM", "dev"),
+            "method": request.method,
+            "path": request.path,
+            "status": response.status_code,
+            "duration": int((datetime.now() - g.start).total_seconds() * 1000)
         }
 
         if strtobool(os.getenv("FULL_ACCESS_LOG_ENABLED", FULL_ACCESS_LOG_ENABLED)):
@@ -104,10 +103,10 @@ class Log:
                 data["response_body"] = getResponseBody(response.data, response.content_type)
 
             logger.info(FULL_LOG_FORMAT.format(
-                data.get("time"), 
-                data.get("method"), 
-                data.get("path"), 
-                data.get("status"), 
+                data.get("time"),
+                data.get("method"),
+                data.get("path"),
+                data.get("status"),
                 data.get("duration"),
                 data.get("length", 0),
                 data.get("user_ip"),
@@ -122,15 +121,15 @@ class Log:
                 data.get("response_content_type", ""),
                 data.get("response_body", "")
             ))
-            
+
         else:
 
             logger.info(DEFAULT_LOG_FORMAT.format(
-                data.get("time"), 
-                data.get("realm"), 
-                data.get("method"), 
-                data.get("path"), 
-                data.get("status"), 
+                data.get("time"),
+                data.get("realm"),
+                data.get("method"),
+                data.get("path"),
+                data.get("status"),
                 data.get("duration")
             ))
 
