@@ -86,6 +86,10 @@ class Log:
             data["referer"] = request.headers.get("Referer", "")
             data["user_ip"] = request.headers.get("X-Forwarded-For", request.remote_addr)
             data["trace_id"] = request.headers.get("X-Ab-TraceID", uuid.uuid4().hex)
+            data["flight_id"] = request.headers.get("x-flight-id", "")
+            data["game_version"] = request.headers.get("Game-Client-Version", "")
+            data["sdk_version"] = request.headers.get("AccelByte-SDK-Version", "")
+            data["oss_version"] = request.headers.get("AccelByte-OSS-Version", "")
 
             if request.headers.get("Authorization"):
                 data_token = decodeToken(request.headers.get("Authorization"))
@@ -119,7 +123,11 @@ class Log:
                 data.get("request_content_type", ""),
                 data.get("request_body", ""),
                 data.get("response_content_type", ""),
-                data.get("response_body", "")
+                data.get("response_body", ""),
+                data.get("flight_id", ""),
+                data.get("game_version", ""),
+                data.get("sdk_version", ""),
+                data.get("oss_version", "")
             ))
 
         else:
