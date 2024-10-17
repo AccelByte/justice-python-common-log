@@ -15,7 +15,8 @@ requirements = ['pyjwt[crypto]==2.2.0','orjson==3.6.4']
 test_requirements = ['pyjwt[crypto]==2.2.0','orjson==3.6.4']
 
 optional_requirements = {
-    "flask": ["Flask>=1.0"]
+    "flask": ["Flask>=1.0"],
+    "fastapi": ["fastapi==0.98.0"]
 }
 
 setup(

@@ -19,52 +19,57 @@ import jwt
 import orjson
 from .constant import FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES, FULL_ACCESS_LOG_MAX_BODY_SIZE
 
-fullAccessLogMaxBodySize = int(os.getenv("FULL_ACCESS_LOG_MAX_BODY_SIZE", FULL_ACCESS_LOG_MAX_BODY_SIZE))
-supportedContentTypeList = str(os.getenv("FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES", FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES)).split(",")
+full_access_log_max_body_size = int(os.getenv("FULL_ACCESS_LOG_MAX_BODY_SIZE", FULL_ACCESS_LOG_MAX_BODY_SIZE))
+supported_content_type_list = str(os.getenv("FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES", FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES)).split(",")
 
 
-def getRequestBody(requestContext, contentType):
-    if not contentType or not isSupportedContentType(contentType):
+def get_request_body(request_context, content_type):
+    if not content_type or not is_supported_content_type(content_type):
         return ""
 
-    if len(requestContext) != 0:
-        if len(requestContext) > fullAccessLogMaxBodySize:
+    if len(request_context) != 0:
+        if len(request_context) > full_access_log_max_body_size:
             return "data too large"
 
-        if contentType == 'application/json':
-            return minifyJsonString(requestContext)
+        if content_type == 'application/json':
+            return minify_json_string(request_context)
 
-    return str(requestContext)
+    return str(request_context)
 
 
-def getResponseBody(responseContext, contentType):
-    if not contentType or not isSupportedContentType(contentType):
+def get_response_body(response_context, content_type, is_fastapi=False):
+    if not content_type or not is_supported_content_type(content_type):
         return ""
 
-    if len(responseContext) != 0:
-        if len(responseContext) > fullAccessLogMaxBodySize:
+    if len(response_context) != 0:
+        if len(response_context) > full_access_log_max_body_size:
             return "data too large"
 
-        if contentType == 'application/json':
-            return minifyJsonString(responseContext)
+        if is_fastapi:
+            return minify_json_string(response_context[0])
+        else:
+            return minify_json_string(response_context)
 
-    return str(responseContext)
-
-
-def minifyJsonString(stringContext):
-    stringContextCompress = orjson.dumps(orjson.loads(stringContext)).decode("utf-8")
-
-    return stringContextCompress
+    return str(response_context)
 
 
-def isSupportedContentType(contentType):
-    if contentType in supportedContentTypeList:
+def minify_json_string(string_context):
+    string_context_compress = orjson.dumps(orjson.loads(string_context)).decode("utf-8")
+
+    return string_context_compress
+
+
+def is_supported_content_type(content_type):
+    if content_type in supported_content_type_list:
         return True
 
     return False
 
 
-def decodeToken(token):
-    data_token = jwt.decode(token.replace("Bearer ", ""), options={"verify_signature": False})
+def decode_token(token):
+    try:
+        data_token = jwt.decode(token.replace("Bearer ", ""), options={"verify_signature": False})
+    except:
+        data_token = dict()
 
     return data_token
