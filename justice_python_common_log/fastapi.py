@@ -1,4 +1,4 @@
-# Copyright 2022 AccelByte Inc
+# Copyright 2024 AccelByte Inc
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,35 +12,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Flask module."""
+"""FastAPI module."""
 
+import logging
 import os
 import re
 import uuid
-import logging
-from distutils.util import strtobool
 from datetime import datetime, timezone
-from flask import g, Flask, request
-from flask.wrappers import Response
+from distutils.util import strtobool
+
+from fastapi import FastAPI, Request
+from starlette.concurrency import iterate_in_threadpool
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import Message
+
 from .constant import DEFAULT_LOG_FORMAT, FULL_LOG_FORMAT, FULL_ACCESS_LOG_ENABLED
-from .utils import get_request_body, get_response_body, decode_token
+from .utils import get_request_body, decode_token, get_response_body
 
 # configure logger format
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger('justice-common-log')
 
 
-class Log:
-    """Log Flask extensions class.
-    """
-
-    def __init__(self, app: Flask = None, excluded_paths=None, excluded_agents=None) -> None:
-        self.app = app
-        self.app = app
+class LogMiddleware(BaseHTTPMiddleware):
+    def __init__(
+        self,
+        app: FastAPI,
+        excluded_paths=None,
+        excluded_agents=None
+    ) -> None:
+        super().__init__(app)
         self.excluded_paths = excluded_paths
         self.excluded_agents = excluded_agents
-        werkzeug_logger = logging.getLogger('werkzeug')
-        werkzeug_logger.disabled = True
 
         if self.excluded_paths is not None:
             self.excluded_paths = [re.compile(pattern) for pattern in self.excluded_paths]
@@ -48,19 +51,13 @@ class Log:
         if self.excluded_agents is not None:
             self.excluded_agents = [re.compile(pattern) for pattern in excluded_agents]
 
-        if app is not None:
-            self.init_app(app)
+    async def dispatch(self, request: Request, call_next):
+        await set_body(request)
+        request_body = await request.body()
 
-    def init_app(self, app: Flask):
-        app.before_request(self.start_request_time)
-        app.after_request(self.filter)
-
-    def start_request_time(self):
-        g.start = datetime.now()
-
-    def filter(self, response: Response) -> Response:
-
-        response.direct_passthrough = False
+        start_time = datetime.now()
+        response = await call_next(request)
+        process_time = (datetime.now() - start_time).total_seconds() * 1000
 
         if self.excluded_agents:
             if request.headers.get("User-Agent") is not None:
@@ -68,23 +65,23 @@ class Log:
                     return response
 
         if self.excluded_paths:
-            if any(pattern.fullmatch(request.path) for pattern in self.excluded_paths):
+            if any(pattern.fullmatch(request.url.path) for pattern in self.excluded_paths):
                 return response
 
         data = {
             "time": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
             "realm": os.getenv("REALM", "dev"),
             "method": request.method,
-            "path": request.path,
+            "path": request.url.path,
             "status": response.status_code,
-            "duration": int((datetime.now() - g.start).total_seconds() * 1000)
+            "duration": int(process_time)
         }
 
         if strtobool(os.getenv("FULL_ACCESS_LOG_ENABLED", FULL_ACCESS_LOG_ENABLED)):
 
             data["user_agent"] = request.headers.get("User-Agent", "")
             data["referer"] = request.headers.get("Referer", "")
-            data["user_ip"] = request.headers.get("X-Forwarded-For", request.remote_addr)
+            data["user_ip"] = request.headers.get("X-Forwarded-For", request.client.host)
             data["trace_id"] = request.headers.get("X-Ab-TraceID", uuid.uuid4().hex)
             data["flight_id"] = request.headers.get("x-flight-id", "")
             data["game_version"] = request.headers.get("Game-Client-Version", "")
@@ -97,14 +94,17 @@ class Log:
                 data["client_id"] = data_token.get("client_id", "")
                 data["namespace"] = data_token.get("namespace", "")
 
-            if request.data:
-                data["request_content_type"] = request.content_type
-                data["request_body"] = get_request_body(request.data, request.content_type)
+            if request_body:
+                data["request_content_type"] = request.headers.get("Content-Type")
+                data["request_body"] = get_request_body(request_body, data["request_content_type"])
 
-            if response.data:
-                data["length"] = len(response.data)
-                data["response_content_type"] = response.content_type
-                data["response_body"] = get_response_body(response.data, response.content_type)
+            response_body = [chunk async for chunk in response.body_iterator]
+            response.body_iterator = iterate_in_threadpool(iter(response_body))
+
+            if response_body:
+                data["length"] = len(response_body[0])
+                data["response_content_type"] = response.headers.get('content-type')
+                data["response_body"] = get_response_body(response_body, response.headers.get('content-type'), is_fastapi=True)
 
             logger.info(FULL_LOG_FORMAT.format(
                 data.get("time"),
@@ -129,9 +129,7 @@ class Log:
                 data.get("sdk_version", ""),
                 data.get("oss_version", "")
             ))
-
         else:
-
             logger.info(DEFAULT_LOG_FORMAT.format(
                 data.get("time"),
                 data.get("realm"),
@@ -142,3 +140,25 @@ class Log:
             ))
 
         return response
+
+async def set_body(request: Request):
+    receive_ = await request._receive()
+
+    async def receive() -> Message:
+        return receive_
+
+    request._receive = receive
+
+class Log:
+    """Log FastAPI extensions class."""
+
+    def __init__(self, app: FastAPI = None, excluded_paths=None, excluded_agents=None) -> None:
+        self.app = app
+        self.excluded_paths = excluded_paths
+        self.excluded_agents = excluded_agents
+
+        if app is not None:
+            self.init_app(app)
+
+    def init_app(self, app: FastAPI):
+        app.add_middleware(LogMiddleware, excluded_paths=self.excluded_paths, excluded_agents=self.excluded_agents)

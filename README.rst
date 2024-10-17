@@ -22,7 +22,7 @@ Justice common log format for python
 Usage in flask
 ~~~~~~~~~~~~~~
 
-**Basic** 
+**Basic**
 
 .. code:: python
 
@@ -33,14 +33,42 @@ Usage in flask
    Log(app)
 
 
-**Exclude specific endpoint** 
+**Exclude specific endpoint**
 
 .. code:: python
 
    Log(app, excluded_paths=['/swaggerui.*', '/analytics/apidocs'])
 
 
-**Exclude specific agent** 
+**Exclude specific agent**
+
+.. code:: python
+
+   Log(app, excluded_agents=['ELB'])
+
+
+Usage in FastAPI
+~~~~~~~~~~~~~~
+
+**Basic**
+
+.. code:: python
+
+   from fastapi import FastAPI
+   from justice_python_common_log.fastapi import Log
+
+   app = FastAPI()
+   Log(app)
+
+
+**Exclude specific endpoint**
+
+.. code:: python
+
+   Log(app, excluded_paths=['/swaggerui.*', '/game-telemetry/apidocs'])
+
+
+**Exclude specific agent**
 
 .. code:: python
 
@@ -50,7 +78,7 @@ Usage in flask
 Environment variables
 ~~~~~~~~~~~~~~~~~~~~~
 
-**FULL_ACCESS_LOG_ENABLED** 
+**FULL_ACCESS_LOG_ENABLED**
 : Enable full access log mode. Default: *false*.
 
 **FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES**
