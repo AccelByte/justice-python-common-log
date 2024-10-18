@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DEFAULT_LOG_FORMAT = 'time={:s} realm={:s} method={:s} path={:s} status={:d} duration={:d}'
+DEFAULT_LOG_FORMAT = 'time={:s} log_type=access method={:s} path={:s} status={:d} duration={:d}'
 FULL_LOG_FORMAT = 'time={:s} log_type=access method={:s} path="{:s}" status={:d} duration={:d} length={:d} source_ip={:s} user_agent="{:s}" referer="{:s}" trace_id={:s} namespace={:s} user_id={:s} client_id={:s} request_content_type="{:s}" request_body=AB[{:s}]AB response_content_type="{:s}" response_body=AB[{:s}]AB operation="" flight_id="{:s}" game_version="{:s}" sdk_version="{:s}" oss_version="{:s}"'
 
 FULL_ACCESS_LOG_ENABLED= "False"

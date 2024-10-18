@@ -73,7 +73,6 @@ class Log:
 
         data = {
             "time": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-            "realm": os.getenv("REALM", "dev"),
             "method": request.method,
             "path": request.path,
             "status": response.status_code,
@@ -134,7 +133,6 @@ class Log:
 
             logger.info(DEFAULT_LOG_FORMAT.format(
                 data.get("time"),
-                data.get("realm"),
                 data.get("method"),
                 data.get("path"),
                 data.get("status"),
