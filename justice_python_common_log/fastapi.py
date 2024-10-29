@@ -83,14 +83,6 @@ class LogMiddleware(BaseHTTPMiddleware):
 
         return response
 
-async def set_body(request: Request):
-    receive_ = await request._receive()
-
-    async def receive() -> Message:
-        return receive_
-
-    request._receive = receive
-
 class Log:
     """Log FastAPI extensions class."""
 
