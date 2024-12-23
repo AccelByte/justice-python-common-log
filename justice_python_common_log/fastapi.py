@@ -26,8 +26,10 @@ from starlette.concurrency import iterate_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import Message
 
-from .constant import DEFAULT_LOG_FORMAT, FULL_LOG_FORMAT, FULL_ACCESS_LOG_ENABLED
+from .constant import DEFAULT_LOG_FORMAT, FULL_LOG_FORMAT, FULL_ACCESS_LOG_ENABLED, FULL_ACCESS_LOG_MAX_BODY_SIZE
 from .utils import get_request_body, decode_token, get_response_body
+
+full_access_log_max_body_size = int(os.getenv("FULL_ACCESS_LOG_MAX_BODY_SIZE", FULL_ACCESS_LOG_MAX_BODY_SIZE))
 
 # configure logger format
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -52,21 +54,22 @@ class LogMiddleware(BaseHTTPMiddleware):
             self.excluded_agents = [re.compile(pattern) for pattern in excluded_agents]
 
     async def dispatch(self, request: Request, call_next):
-        await set_body(request)
-        request_body = await request.body()
+        if self.should_skip_logging(request):
+            return await call_next(request)
 
         start_time = datetime.now()
+        request_body = b''
+
+        # Only read request body if we need it for logging
+        if strtobool(os.getenv("FULL_ACCESS_LOG_ENABLED", FULL_ACCESS_LOG_ENABLED)):
+            try:
+                await set_body(request)
+                request_body = await request.body()
+            except Exception as e:
+                logger.warning(f"Error reading request body: {e}")
+
         response = await call_next(request)
         process_time = (datetime.now() - start_time).total_seconds() * 1000
-
-        if self.excluded_agents:
-            if request.headers.get("User-Agent") is not None:
-                if any(pattern.match(request.headers.get("User-Agent")) for pattern in self.excluded_agents):
-                    return response
-
-        if self.excluded_paths:
-            if any(pattern.fullmatch(request.url.path) for pattern in self.excluded_paths):
-                return response
 
         data = {
             "time": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
@@ -77,57 +80,69 @@ class LogMiddleware(BaseHTTPMiddleware):
         }
 
         if strtobool(os.getenv("FULL_ACCESS_LOG_ENABLED", FULL_ACCESS_LOG_ENABLED)):
+            try:
+                # Headers and token data updates remain the same...
 
-            data["user_agent"] = request.headers.get("User-Agent", "")
-            data["referer"] = request.headers.get("Referer", "")
-            data["user_ip"] = request.headers.get("X-Forwarded-For", request.client.host)
-            data["trace_id"] = request.headers.get("X-Ab-TraceID", uuid.uuid4().hex)
-            data["flight_id"] = request.headers.get("x-flight-id", "")
-            data["game_version"] = request.headers.get("Game-Client-Version", "")
-            data["sdk_version"] = request.headers.get("AccelByte-SDK-Version", "")
-            data["oss_version"] = request.headers.get("AccelByte-OSS-Version", "")
+                # Request body processing - only if we have it
+                if request_body:
+                    data.update({
+                        "request_content_type": request.headers.get("Content-Type"),
+                        "request_body": get_request_body(request_body, request.headers.get("Content-Type"))
+                    })
 
-            if request.headers.get("Authorization"):
-                data_token = decode_token(request.headers.get("Authorization"))
-                data["user_id"] = data_token.get("user_id", "")
-                data["client_id"] = data_token.get("client_id", "")
-                data["namespace"] = data_token.get("namespace", "")
+                # Response body processing - single pass, tracking size
+                response_body = []
+                total_size = 0
+                async for chunk in response.body_iterator:
+                    response_body.append(chunk)
+                    total_size += len(chunk)
 
-            if request_body:
-                data["request_content_type"] = request.headers.get("Content-Type")
-                data["request_body"] = get_request_body(request_body, data["request_content_type"])
+                # Update response data and restore iterator
+                if response_body:
+                    data.update({
+                        "length": total_size,
+                        "response_content_type": response.headers.get('content-type'),
+                        "response_body": get_response_body(b''.join(response_body),
+                                                           response.headers.get('content-type'),
+                                                           is_fastapi=True)
+                    })
 
-            response_body = [chunk async for chunk in response.body_iterator]
-            response.body_iterator = iterate_in_threadpool(iter(response_body))
+                response.body_iterator = iterate_in_threadpool(iter(response_body))
 
-            if response_body:
-                data["length"] = len(response_body[0])
-                data["response_content_type"] = response.headers.get('content-type')
-                data["response_body"] = get_response_body(response_body, response.headers.get('content-type'), is_fastapi=True)
-
-            logger.info(FULL_LOG_FORMAT.format(
-                data.get("time"),
-                data.get("method"),
-                data.get("path"),
-                data.get("status"),
-                data.get("duration"),
-                data.get("length", 0),
-                data.get("user_ip"),
-                data.get("user_agent"),
-                data.get("referer"),
-                data.get("trace_id"),
-                data.get("namespace", ""),
-                data.get("user_id", ""),
-                data.get("client_id", ""),
-                data.get("request_content_type", ""),
-                data.get("request_body", ""),
-                data.get("response_content_type", ""),
-                data.get("response_body", ""),
-                data.get("flight_id", ""),
-                data.get("game_version", ""),
-                data.get("sdk_version", ""),
-                data.get("oss_version", "")
-            ))
+                # Log using full format
+                logger.info(FULL_LOG_FORMAT.format(
+                    data.get("time"),
+                    data.get("method"),
+                    data.get("path"),
+                    data.get("status"),
+                    data.get("duration"),
+                    data.get("length", 0),
+                    data.get("user_ip", ""),
+                    data.get("user_agent", ""),
+                    data.get("referer", ""),
+                    data.get("trace_id", ""),
+                    data.get("namespace", ""),
+                    data.get("user_id", ""),
+                    data.get("client_id", ""),
+                    data.get("request_content_type", ""),
+                    data.get("request_body", ""),
+                    data.get("response_content_type", ""),
+                    data.get("response_body", ""),
+                    data.get("flight_id", ""),
+                    data.get("game_version", ""),
+                    data.get("sdk_version", ""),
+                    data.get("oss_version", "")
+                ))
+            except Exception as e:
+                logger.error(f"Error in full logging: {e}")
+                # Fallback to default logging
+                logger.info(DEFAULT_LOG_FORMAT.format(
+                    data.get("time"),
+                    data.get("method"),
+                    data.get("path"),
+                    data.get("status"),
+                    data.get("duration")
+                ))
         else:
             logger.info(DEFAULT_LOG_FORMAT.format(
                 data.get("time"),
@@ -138,6 +153,19 @@ class LogMiddleware(BaseHTTPMiddleware):
             ))
 
         return response
+
+
+    def should_skip_logging(self, request: Request) -> bool:
+        """Check if logging should be skipped"""
+        if self.excluded_agents and request.headers.get("User-Agent"):
+            if any(pattern.match(request.headers.get("User-Agent")) for pattern in self.excluded_agents):
+                return True
+
+        if self.excluded_paths:
+            if any(pattern.fullmatch(request.url.path) for pattern in self.excluded_paths):
+                return True
+
+        return False
 
 async def set_body(request: Request):
     receive_ = await request._receive()

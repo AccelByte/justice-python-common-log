@@ -17,10 +17,12 @@
 import os
 import jwt
 import orjson
-from .constant import FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES, FULL_ACCESS_LOG_MAX_BODY_SIZE
+from .constant import (FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES,
+                       FULL_ACCESS_LOG_MAX_BODY_SIZE)
 
 full_access_log_max_body_size = int(os.getenv("FULL_ACCESS_LOG_MAX_BODY_SIZE", FULL_ACCESS_LOG_MAX_BODY_SIZE))
-supported_content_type_list = str(os.getenv("FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES", FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES)).split(",")
+supported_content_type_list = str(os.getenv("FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES",
+                                            FULL_ACCESS_LOG_SUPPORTED_CONTENT_TYPES)).split(",")
 
 
 def get_request_body(request_context, content_type):
