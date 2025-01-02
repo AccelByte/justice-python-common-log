@@ -52,9 +52,6 @@ class LogMiddleware(BaseHTTPMiddleware):
             self.excluded_agents = [re.compile(pattern) for pattern in excluded_agents]
 
     async def dispatch(self, request: Request, call_next):
-        await set_body(request)
-        request_body = await request.body()
-
         start_time = datetime.now()
         response = await call_next(request)
         process_time = (datetime.now() - start_time).total_seconds() * 1000
@@ -76,76 +73,15 @@ class LogMiddleware(BaseHTTPMiddleware):
             "duration": int(process_time)
         }
 
-        if strtobool(os.getenv("FULL_ACCESS_LOG_ENABLED", FULL_ACCESS_LOG_ENABLED)):
-
-            data["user_agent"] = request.headers.get("User-Agent", "")
-            data["referer"] = request.headers.get("Referer", "")
-            data["user_ip"] = request.headers.get("X-Forwarded-For", request.client.host)
-            data["trace_id"] = request.headers.get("X-Ab-TraceID", uuid.uuid4().hex)
-            data["flight_id"] = request.headers.get("x-flight-id", "")
-            data["game_version"] = request.headers.get("Game-Client-Version", "")
-            data["sdk_version"] = request.headers.get("AccelByte-SDK-Version", "")
-            data["oss_version"] = request.headers.get("AccelByte-OSS-Version", "")
-
-            if request.headers.get("Authorization"):
-                data_token = decode_token(request.headers.get("Authorization"))
-                data["user_id"] = data_token.get("user_id", "")
-                data["client_id"] = data_token.get("client_id", "")
-                data["namespace"] = data_token.get("namespace", "")
-
-            if request_body:
-                data["request_content_type"] = request.headers.get("Content-Type")
-                data["request_body"] = get_request_body(request_body, data["request_content_type"])
-
-            response_body = [chunk async for chunk in response.body_iterator]
-            response.body_iterator = iterate_in_threadpool(iter(response_body))
-
-            if response_body:
-                data["length"] = len(response_body[0])
-                data["response_content_type"] = response.headers.get('content-type')
-                data["response_body"] = get_response_body(response_body, response.headers.get('content-type'), is_fastapi=True)
-
-            logger.info(FULL_LOG_FORMAT.format(
-                data.get("time"),
-                data.get("method"),
-                data.get("path"),
-                data.get("status"),
-                data.get("duration"),
-                data.get("length", 0),
-                data.get("user_ip"),
-                data.get("user_agent"),
-                data.get("referer"),
-                data.get("trace_id"),
-                data.get("namespace", ""),
-                data.get("user_id", ""),
-                data.get("client_id", ""),
-                data.get("request_content_type", ""),
-                data.get("request_body", ""),
-                data.get("response_content_type", ""),
-                data.get("response_body", ""),
-                data.get("flight_id", ""),
-                data.get("game_version", ""),
-                data.get("sdk_version", ""),
-                data.get("oss_version", "")
-            ))
-        else:
-            logger.info(DEFAULT_LOG_FORMAT.format(
-                data.get("time"),
-                data.get("method"),
-                data.get("path"),
-                data.get("status"),
-                data.get("duration")
-            ))
+        logger.info(DEFAULT_LOG_FORMAT.format(
+            data.get("time"),
+            data.get("method"),
+            data.get("path"),
+            data.get("status"),
+            data.get("duration")
+        ))
 
         return response
-
-async def set_body(request: Request):
-    receive_ = await request._receive()
-
-    async def receive() -> Message:
-        return receive_
-
-    request._receive = receive
 
 class Log:
     """Log FastAPI extensions class."""
