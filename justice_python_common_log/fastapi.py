@@ -19,7 +19,6 @@ import os
 import re
 import uuid
 from datetime import datetime, timezone
-from distutils.util import strtobool
 
 from fastapi import FastAPI, Request
 from starlette.concurrency import iterate_in_threadpool

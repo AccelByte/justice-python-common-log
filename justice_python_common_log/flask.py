@@ -18,12 +18,28 @@ import os
 import re
 import uuid
 import logging
-from distutils.util import strtobool
 from datetime import datetime, timezone
 from flask import g, Flask, request
 from flask.wrappers import Response
 from .constant import DEFAULT_LOG_FORMAT, FULL_LOG_FORMAT, FULL_ACCESS_LOG_ENABLED
 from .utils import get_request_body, get_response_body, decode_token
+
+
+def strtobool(val):
+    """Convert a string representation of truth to true (1) or false (0).
+
+    True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
+    are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
+    'val' is anything else.
+    """
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError(f"invalid truth value {val!r}")
+
 
 # configure logger format
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -59,8 +75,6 @@ class Log:
         g.start = datetime.now()
 
     def filter(self, response: Response) -> Response:
-
-        response.direct_passthrough = False
 
         if self.excluded_agents:
             if request.headers.get("User-Agent") is not None:

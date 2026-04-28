@@ -10,13 +10,13 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['pyjwt[crypto]==2.4.0','orjson==3.9.15']
+requirements = ['pyjwt[crypto]>=2.4.0','orjson>=3.9.15']
 
-test_requirements = ['pyjwt[crypto]==2.4.0','orjson==3.9.15']
+test_requirements = ['pyjwt[crypto]>=2.4.0','orjson>=3.9.15']
 
 optional_requirements = {
     "flask": ["Flask>=1.0"],
-    "fastapi": ["fastapi==0.98.0"]
+    "fastapi": ["fastapi>=0.98.0"]
 }
 
 setup(
@@ -32,6 +32,12 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
     ],
     description="Justice common log format for python",
     install_requires=requirements,
@@ -45,6 +51,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/AccelByte/justice-python-common-log',
-    version='0.1.0',
+    version='1.4.0',
     zip_safe=False,
 )

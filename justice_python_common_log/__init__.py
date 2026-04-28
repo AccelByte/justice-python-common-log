@@ -2,4 +2,4 @@
 
 __author__ = """Accelbyte Analytics"""
 __email__ = 'justice-analytics-team@accelbyte.net'
-__version__ = '0.1.0'
+__version__ = '1.4.0'
